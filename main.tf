@@ -85,8 +85,9 @@ resource "aws_security_group_rule" "all_traffic_outbound_https" {
 ### S3 ###
 
 resource "random_string" "bucket" {
-  length  = 16
-  special = false
+  length    = 16
+  min_lower = 16
+  special   = false
 }
 
 resource "aws_s3_bucket" "main" {
