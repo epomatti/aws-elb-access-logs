@@ -11,8 +11,11 @@ provider "aws" {
   region = var.aws_region
 }
 
+data "aws_caller_identity" "current" {}
+
 locals {
   app                 = "sandbox"
+  account_id          = data.aws_caller_identity.current.account_id
   availability_zone_1 = "${var.aws_region}a"
   availability_zone_2 = "${var.aws_region}b"
 }
@@ -82,6 +85,7 @@ resource "aws_security_group_rule" "all_traffic_outbound_https" {
   security_group_id = aws_security_group.elb.id
 }
 
+
 ### S3 ###
 
 resource "random_string" "bucket" {
@@ -111,41 +115,34 @@ resource "aws_s3_bucket_public_access_block" "main" {
   restrict_public_buckets = true
 }
 
-# resource "aws_s3_bucket_versioning" "main" {
-#   bucket = aws_s3_bucket.main.id
-#   versioning_configuration {
-#     status = "Enabled"
-#   }
-# }
+resource "aws_s3_bucket_versioning" "main" {
+  bucket = aws_s3_bucket.main.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
 
-# resource "aws_s3_bucket_logging" "main" {
-#   bucket = aws_s3_bucket.main.id
+resource "aws_s3_bucket_logging" "main" {
+  bucket = aws_s3_bucket.main.id
 
-#   target_bucket = aws_s3_bucket.main.id
-#   target_prefix = "log/"
-# }
+  target_bucket = aws_s3_bucket.main.id
+  target_prefix = "log/"
+}
 
-# resource "aws_s3_bucket_server_side_encryption_configuration" "main" {
-#   bucket = aws_s3_bucket.main.id
+resource "aws_s3_bucket_server_side_encryption_configuration" "main" {
+  bucket = aws_s3_bucket.main.id
 
-#   rule {
-#     apply_server_side_encryption_by_default {
-#       kms_master_key_id = var.kms_key_arn
-#       sse_algorithm     = "aws:kms"
-#     }
-#   }
-# }
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
 
 # ELB Permissions
 resource "aws_s3_bucket_policy" "elb_access_logs" {
   bucket = aws_s3_bucket.main.id
   policy = data.aws_iam_policy_document.elb_access_logs.json
-}
-
-data "aws_caller_identity" "current" {}
-
-locals {
-  account_id = data.aws_caller_identity.current.account_id
 }
 
 data "aws_iam_policy_document" "elb_access_logs" {
