@@ -204,7 +204,7 @@ resource "aws_lb_listener" "main" {
 resource "aws_autoscaling_group" "default" {
   name = "asg-${local.app}"
   launch_template {
-    id = aws_launch_template.main.id
+    id      = aws_launch_template.main.id
     version = "$Latest"
   }
   min_size            = 1
@@ -247,11 +247,26 @@ resource "aws_iam_role_policy_attachment" "ssm-managed-instance-core" {
   policy_arn = data.aws_iam_policy.AmazonSSMManagedInstanceCore.arn
 }
 
+resource "aws_key_pair" "elb_access_logs" {
+  key_name   = "elb-access-logs"
+  public_key = file("${path.module}/id_rsa.pub")
+}
+
+resource "aws_iam_instance_profile" "base" {
+  name = "elb-access-logs-profile"
+  role = aws_iam_role.main.id
+}
+
 resource "aws_launch_template" "main" {
   name          = "launchtemplate-${local.app}"
   user_data     = filebase64("${path.module}/config/userdata.sh")
   image_id      = "ami-0cc87e5027adcdca8"
   instance_type = var.instance_type
+  key_name      = aws_key_pair.elb_access_logs.key_name
+
+  iam_instance_profile {
+    arn = aws_iam_instance_profile.base.arn
+  }
 
   block_device_mappings {
     device_name = "/dev/sda1"
@@ -264,10 +279,7 @@ resource "aws_launch_template" "main" {
   network_interfaces {
     associate_public_ip_address = true
     security_groups             = [aws_security_group.elb.id]
-    # delete_on_termination       = true
-    # subnet_id                   = aws_subnet.public1.id
+    delete_on_termination       = true
+    subnet_id                   = aws_subnet.public1.id
   }
-
-  # vpc_security_group_ids = [aws_security_group.elb.id]
-
 }
