@@ -33,8 +33,8 @@ resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 }
 
-resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.main.id
+resource "aws_default_route_table" "public" {
+  default_route_table_id = aws_vpc.main.default_route_table_id
 
   route {
     cidr_block = "0.0.0.0/0"
@@ -58,6 +58,11 @@ resource "aws_subnet" "public2" {
 
   # Auto-assign public IPv4 address
   map_public_ip_on_launch = true
+}
+
+# This will clean up all default entries
+resource "aws_default_security_group" "default" {
+  vpc_id = aws_vpc.main.id
 }
 
 resource "aws_security_group" "elb" {
