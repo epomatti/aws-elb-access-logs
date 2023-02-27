@@ -10,3 +10,9 @@ Server-side encryption for this integration only supports Amazon S3-managed keys
 terraform init
 terraform apply -auto-approve
 ```
+
+ELB will confirm that the configuration worked by creating the file `ELBAccessLogTestFile`:
+
+```
+https://<bucket>.s3.<region>.amazonaws.com/<prefix>/AWSLogs/<account>/ELBAccessLogTestFile
+```

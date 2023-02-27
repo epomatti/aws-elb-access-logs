@@ -7,3 +7,8 @@ variable "elb_account_id" {
   type    = string
   default = "127311923021"
 }
+
+variable "instance_type" {
+  type    = string
+  default = "t3.large"
+}

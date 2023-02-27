@@ -65,17 +65,17 @@ resource "aws_security_group" "elb" {
   vpc_id = aws_vpc.main.id
 }
 
-resource "aws_security_group_rule" "all_traffic_inbound_https" {
+resource "aws_security_group_rule" "all_traffic_inbound" {
   description       = "HTTPS Inbound"
   type              = "ingress"
-  from_port         = 80
-  to_port           = 80
-  protocol          = "tcp"
+  from_port         = 0
+  to_port           = 65535
+  protocol          = "all"
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.elb.id
 }
 
-resource "aws_security_group_rule" "all_traffic_outbound_https" {
+resource "aws_security_group_rule" "all_traffic_outbound" {
   description       = "HTTPS Outbound"
   type              = "egress"
   from_port         = 0
@@ -176,4 +176,98 @@ resource "aws_lb" "main" {
   depends_on = [
     aws_s3_bucket_policy.elb_access_logs
   ]
+}
+
+resource "aws_lb_target_group" "main" {
+  name     = "tg-elb-${local.app}"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.main.id
+
+  health_check {
+    enabled = true
+    path    = "/"
+  }
+}
+
+resource "aws_lb_listener" "main" {
+  load_balancer_arn = aws_lb.main.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.main.arn
+  }
+}
+
+resource "aws_autoscaling_group" "default" {
+  name = "asg-${local.app}"
+  launch_template {
+    id = aws_launch_template.main.id
+    version = "$Latest"
+  }
+  min_size            = 1
+  max_size            = 1
+  desired_capacity    = 1
+  vpc_zone_identifier = [aws_subnet.public1.id]
+  target_group_arns   = [aws_lb_target_group.main.arn]
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+### IAM Role ###
+
+resource "aws_iam_role" "main" {
+  name = "${local.app}-ec2-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
+data "aws_iam_policy" "AmazonSSMManagedInstanceCore" {
+  arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_role_policy_attachment" "ssm-managed-instance-core" {
+  role       = aws_iam_role.main.name
+  policy_arn = data.aws_iam_policy.AmazonSSMManagedInstanceCore.arn
+}
+
+resource "aws_launch_template" "main" {
+  name          = "launchtemplate-${local.app}"
+  user_data     = filebase64("${path.module}/config/userdata.sh")
+  image_id      = "ami-0cc87e5027adcdca8"
+  instance_type = var.instance_type
+
+  block_device_mappings {
+    device_name = "/dev/sda1"
+
+    ebs {
+      volume_size = 20
+    }
+  }
+
+  network_interfaces {
+    associate_public_ip_address = true
+    security_groups             = [aws_security_group.elb.id]
+    # delete_on_termination       = true
+    # subnet_id                   = aws_subnet.public1.id
+  }
+
+  # vpc_security_group_ids = [aws_security_group.elb.id]
+
 }
