@@ -16,3 +16,5 @@ ELB will confirm that the configuration worked by creating the file `ELBAccessLo
 ```
 https://<bucket>.s3.<region>.amazonaws.com/<prefix>/AWSLogs/<account>/ELBAccessLogTestFile
 ```
+
+Once traffic starts coming in to ELB the access logs will be generated in the S3. You can use Athena to query the results.
