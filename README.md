@@ -1,4 +1,4 @@
-# AWS EJB + Access Logs
+# AWS ELB + Access Logs
 
 Short example for Application Load Balancer sending access logs do S3.
 
