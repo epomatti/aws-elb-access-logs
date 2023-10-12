@@ -1,14 +1,15 @@
 variable "aws_region" {
-  type    = string
-  default = "us-east-2"
+  type = string
 }
 
 variable "elb_account_id" {
-  type    = string
-  default = "033677994240"
+  type = string
 }
 
 variable "instance_type" {
-  type    = string
-  default = "t3.large"
+  type = string
+}
+
+variable "ami" {
+  type = string
 }
