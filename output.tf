@@ -1,3 +1,3 @@
-# output "lb_dns_name" {
-#   value = aws_lb.main.dns_name
-# }
+output "lb_dns_name" {
+  value = module.elb.lb_dns_name
+}
