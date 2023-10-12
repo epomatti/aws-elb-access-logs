@@ -37,10 +37,12 @@ resource "aws_lb_listener" "main" {
 
 resource "aws_autoscaling_group" "default" {
   name = "asg-${var.app}"
+
   launch_template {
     id      = aws_launch_template.main.id
     version = "$Latest"
   }
+
   min_size            = 1
   max_size            = 1
   desired_capacity    = 1
@@ -50,6 +52,14 @@ resource "aws_autoscaling_group" "default" {
   lifecycle {
     create_before_destroy = true
   }
+}
+
+data "aws_vpc" "selected" {
+  id = var.vpc_id
+}
+
+locals {
+  vpc_cidr_blocks = [data.aws_vpc.selected.cidr_block]
 }
 
 resource "aws_security_group" "elb" {
@@ -83,7 +93,7 @@ resource "aws_security_group_rule" "outbound_http" {
   from_port         = 80
   to_port           = 80
   protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
+  cidr_blocks       = local.vpc_cidr_blocks
   security_group_id = aws_security_group.elb.id
 }
 
@@ -93,6 +103,6 @@ resource "aws_security_group_rule" "outbound_https" {
   from_port         = 443
   to_port           = 443
   protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
+  cidr_blocks       = local.vpc_cidr_blocks
   security_group_id = aws_security_group.elb.id
 }

@@ -1,7 +1,8 @@
 resource "random_string" "bucket" {
   length  = 5
   special = false
-  lower   = false
+  upper   = false
+  numeric = false
 }
 
 resource "aws_s3_bucket" "default" {
