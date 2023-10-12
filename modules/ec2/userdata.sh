@@ -6,9 +6,8 @@ dnf check-update --releasever=$relasever
 dnf update --releasever=$relasever
 
 # nginx
-amazon-linux-extras install nginx1
-sudo dnf install -y nginx
+dnf install -y nginx
 
-sudo systemctl start nginx.service
-sudo systemctl status nginx.service
-sudo systemctl enable nginx.service
+systemctl start nginx.service
+systemctl status nginx.service
+systemctl enable nginx.service
