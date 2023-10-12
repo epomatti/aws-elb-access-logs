@@ -6,6 +6,15 @@ Server-side encryption for this integration only supports Amazon S3-managed keys
 
 > The only server-side encryption option that's supported is Amazon S3-managed keys (SSE-S3). For more information, see Amazon S3-managed encryption keys (SSE-S3).
 
+Create the temporary key pair:
+
+```sh
+mkdir -p keys
+ssh-keygen -f keys/temp_key
+```
+
+Start the environment:
+
 ```sh
 terraform init
 terraform apply -auto-approve
