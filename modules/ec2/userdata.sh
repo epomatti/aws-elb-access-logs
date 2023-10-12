@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
-su ec2-user
-sudo yum update
-sudo yum upgrade -y
+
+relasever="2023.0.20230210"
+
+dnf check-update --releasever=$relasever
+dnf update --releasever=$relasever
 
 # nginx
-sudo amazon-linux-extras install nginx1
-sudo systemctl start nginx
+amazon-linux-extras install nginx1
+sudo dnf install -y nginx
+
+sudo systemctl start nginx.service
+sudo systemctl status nginx.service
+sudo systemctl enable nginx.service
