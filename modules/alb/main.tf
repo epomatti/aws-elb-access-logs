@@ -8,19 +8,15 @@ resource "aws_lb" "main" {
   access_logs {
     enabled = true
     prefix  = var.app
-    bucket  = aws_s3_bucket.main.bucket
+    bucket  = var.access_log_bucket
   }
-
-  depends_on = [
-    aws_s3_bucket_policy.elb_access_logs
-  ]
 }
 
 resource "aws_lb_target_group" "main" {
   name     = "tg-elb-${var.app}"
   port     = 80
   protocol = "HTTP"
-  vpc_id   = aws_vpc.main.id
+  vpc_id   = var.vpc_id
 
   health_check {
     enabled = true
@@ -61,22 +57,42 @@ resource "aws_security_group" "elb" {
   vpc_id = var.vpc_id
 }
 
-resource "aws_security_group_rule" "all_traffic_inbound" {
-  description       = "HTTPS Inbound"
+resource "aws_security_group_rule" "inbound_http" {
+  description       = "HTTP Inbound"
   type              = "ingress"
-  from_port         = 0
-  to_port           = 65535
-  protocol          = "all"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.elb.id
 }
 
-resource "aws_security_group_rule" "all_traffic_outbound" {
+resource "aws_security_group_rule" "inbound_https" {
+  description       = "HTTPS Inbound"
+  type              = "ingress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.elb.id
+}
+
+resource "aws_security_group_rule" "outbound_http" {
+  description       = "HTTP Outbound"
+  type              = "egress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.elb.id
+}
+
+resource "aws_security_group_rule" "outbound_https" {
   description       = "HTTPS Outbound"
   type              = "egress"
-  from_port         = 0
-  to_port           = 65535
-  protocol          = "all"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.elb.id
 }
