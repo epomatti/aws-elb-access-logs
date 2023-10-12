@@ -36,5 +36,12 @@ https://<bucket>.s3.<region>.amazonaws.com/<prefix>/AWSLogs/<account>/ELBAccessL
 
 Once traffic starts coming in to ELB the access logs will be generated in the S3. You can use Athena to query the results.
 
+---
+
+### Clean-up
+
+```sh
+terraform destroy -auto-approve
+```
 
 [1]: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/enable-access-logging.html#access-log-create-bucket
