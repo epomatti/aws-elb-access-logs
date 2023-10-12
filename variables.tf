@@ -13,3 +13,7 @@ variable "instance_type" {
 variable "ami" {
   type = string
 }
+
+variable "elb_access_logs_enabled" {
+  type = bool
+}

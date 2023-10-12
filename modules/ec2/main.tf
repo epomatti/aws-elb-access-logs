@@ -83,7 +83,7 @@ locals {
 }
 
 resource "aws_security_group" "elb" {
-  name   = "elb-sg-${var.app}"
+  name   = "ec2-sg-${var.app}"
   vpc_id = var.vpc_id
 }
 

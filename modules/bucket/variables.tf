@@ -5,3 +5,7 @@ variable "app" {
 variable "elb_account_id" {
   type = string
 }
+
+variable "access_logs_prefix" {
+  type = string
+}

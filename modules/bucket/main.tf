@@ -52,7 +52,7 @@ resource "aws_s3_bucket_policy" "elb_access_logs" {
         },
         "Action" : "s3:PutObject",
         "Resource" : [
-          "arn:aws:s3:::${aws_s3_bucket.default.bucket}/${var.app}/AWSLogs/*",
+          "arn:aws:s3:::${aws_s3_bucket.default.bucket}/${var.access_logs_prefix}/AWSLogs/*",
         ]
       }
     ]

@@ -1,14 +1,14 @@
 resource "aws_lb" "main" {
-  name               = "elb-${var.app}"
+  name               = "alb-${var.app}"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.elb.id]
-  subnets            = [aws_subnet.public1.id, aws_subnet.public2.id]
+  subnets            = var.subnet_ids
 
   access_logs {
-    enabled = true
-    prefix  = var.app
-    bucket  = var.access_log_bucket
+    enabled = var.access_logs_enabled
+    prefix  = var.access_logs_prefix
+    bucket  = var.access_logs_bucket
   }
 }
 
@@ -36,18 +36,17 @@ resource "aws_lb_listener" "main" {
 }
 
 resource "aws_autoscaling_group" "default" {
-  name = "asg-${var.app}"
-
-  launch_template {
-    id      = aws_launch_template.main.id
-    version = "$Latest"
-  }
-
+  name                = "asg-${var.app}"
+  target_group_arns   = [aws_lb_target_group.main.arn]
   min_size            = 1
   max_size            = 1
   desired_capacity    = 1
-  vpc_zone_identifier = [aws_subnet.public1.id]
-  target_group_arns   = [aws_lb_target_group.main.arn]
+  vpc_zone_identifier = var.subnet_ids
+
+  launch_template {
+    id      = var.ec2_launch_template_id
+    version = "$Latest"
+  }
 
   lifecycle {
     create_before_destroy = true
