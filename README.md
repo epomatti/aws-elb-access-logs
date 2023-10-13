@@ -74,6 +74,76 @@ s3://your-alb-logs-directory/AWSLogs/<ACCOUNT-ID>/elasticloadbalancing/<REGION>/
 
 Terraform will also prepare an Athena Workgroup with a dedicated S3 output.
 
+All you have to do now is select the `elb-access-logs` Workgroup.
+
+## Example queries for ALB logs
+
+I copied these queries from the documentation:
+
+> View the first 100 access log entries in chronological order
+
+```sql
+SELECT *  
+FROM alb_logs  
+ORDER by time ASC  
+LIMIT 100
+```
+
+> List all client IP addresses that accessed the Application Load Balancer, and how many times they accessed the Application Load Balancer
+
+```sql
+SELECT distinct client_ip, count() as count from alb_logs  
+GROUP by client_ip  
+ORDER by count() DESC;
+```
+
+> The following query counts the number of HTTP GET requests received by the load balancer grouped by the client IP address:
+
+```sql
+SELECT COUNT(request_verb) AS
+ count,
+ request_verb,
+ client_ip
+FROM alb_logs
+GROUP BY request_verb, client_ip
+LIMIT 100;
+```
+
+> Another query shows the URLs visited by Safari browser users:
+
+```sql
+SELECT request_url
+FROM alb_logs
+WHERE user_agent LIKE '%Safari%'
+LIMIT 10;
+```
+
+> The following query shows records that have ELB status code values greater than or equal to 500.
+
+```sql
+SELECT * FROM alb_logs
+WHERE elb_status_code >= 500
+```
+
+> The following example shows how to parse the logs by `datetime`:
+
+```sql
+SELECT client_ip, sum(received_bytes) 
+FROM alb_logs
+WHERE parse_datetime(time,'yyyy-MM-dd''T''HH:mm:ss.SSSSSS''Z') 
+     BETWEEN parse_datetime('2018-05-30-12:00:00','yyyy-MM-dd-HH:mm:ss') 
+     AND parse_datetime('2018-05-31-00:00:00','yyyy-MM-dd-HH:mm:ss') 
+GROUP BY client_ip;
+```
+
+> The following query queries the table that uses partition projection for all ALB logs from the specified day.
+
+```sqld
+SELECT * 
+FROM alb_logs 
+WHERE day = '2022/02/12'
+```
+
 
 ---
 
