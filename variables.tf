@@ -17,3 +17,7 @@ variable "ami" {
 variable "elb_access_logs_enabled" {
   type = bool
 }
+
+variable "athena_user_principal" {
+  type = string
+}

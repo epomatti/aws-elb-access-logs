@@ -11,9 +11,12 @@ provider "aws" {
   region = var.aws_region
 }
 
+data "aws_caller_identity" "current" {}
+
 locals {
   app                = "companyx"
   access_logs_prefix = "elb-accesslogs"
+  account_id         = data.aws_caller_identity.current.account_id
 }
 
 module "vpc" {
@@ -49,4 +52,14 @@ module "elb" {
   access_logs_enabled = var.elb_access_logs_enabled
   access_logs_prefix  = local.access_logs_prefix
   access_logs_bucket  = module.bucket.bucket
+}
+
+module "athena" {
+  source     = "./modules/athena"
+  account_id = local.account_id
+  principal  = var.athena_user_principal
+}
+
+module "glue" {
+  source = "./modules/glue"
 }
