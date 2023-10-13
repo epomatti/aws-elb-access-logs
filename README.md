@@ -138,7 +138,7 @@ GROUP BY client_ip;
 
 > The following query queries the table that uses partition projection for all ALB logs from the specified day.
 
-```sqld
+```sql
 SELECT * 
 FROM alb_logs 
 WHERE day = '2022/02/12'
